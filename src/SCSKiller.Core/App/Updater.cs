@@ -189,16 +189,16 @@ public static class Updater
         try
         {
             if (Usable(ready) is not { M: var m, R: var r } d)
-                return Fail("The update changed meanwhile. Restart to update again once it is ready.");
+                return Fail("更新在此期间发生了变化。待其就绪后再次重启更新。");
             if (!await m.OnDisk(r))
             {
                 m.Delete(r);
                 Stage(null);
-                return Fail("The downloaded update is no longer whole on disk. It downloads again at the next check.");
+                return Fail("已下载的更新在磁盘上已不完整。下次检查时会重新下载。");
             }
-            if (!m.OnlyThis(r)) return Fail("An older downloaded update couldn't be removed. The update installs at a later quit.");
+            if (!m.OnlyThis(r)) return Fail("较旧的已下载更新无法移除。更新将在稍后退出时安装。");
             if (Busy.Handover(DataDir, DateTimeOffset.UtcNow) is { } busy) return Undo(busy);   // writes the marker, kept only on null
-            if (Usable(ready) is null) return Undo("The update channel changed meanwhile. Restart to update again once it is ready.");
+            if (Usable(ready) is null) return Undo("更新通道在此期间发生了变化。待其就绪后再次重启更新。");
             if (still?.Invoke(d) == false) return Undo(null);
             if (OfflineBlocks()) return Undo(OfflineRunning);
             Log($"Handing the update to {r.Version} to {m.UpdaterName}");
@@ -234,7 +234,7 @@ public static class Updater
         }
     }
 
-    const string OfflineRunning = "A recording session's game is running, or its files are still in the game folder. The update installs once it has ended.";
+    const string OfflineRunning = "录制场次的游戏正在运行，或其文件仍在游戏文件夹中。场次结束后才会安装更新。";
 
     /// <summary>Who updates this copy. Read on first use, after UpdateHooks.Run unless it is a Flatpak or a package; a
     /// failure isn't kept, the next use tries again.</summary>

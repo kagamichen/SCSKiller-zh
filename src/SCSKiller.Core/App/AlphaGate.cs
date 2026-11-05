@@ -24,17 +24,17 @@ public static class AlphaGate
 
     public const string FileName = "alpha-pass";
     static bool Beta => AppVersion.Current.Channel == UpdateChannels.Beta;
-    public static string Title => Beta ? "Beta builds are for Patreon supporters." : "Alpha builds are for Patreon backers.";
-    public static string Intro => Beta ? "Sign in with Patreon once. After that this beta runs offline." : "Sign in with Patreon once. After that this alpha runs offline.";
-    public const string SignIn = "Sign in with Patreon";
-    public const string Waiting = "Finish the sign-in in your browser.";
-    public const string NotBacker = "This Patreon account isn't a backer. Alpha builds come with the backer tier.";
-    public const string SupporterOnly = "Your tier includes beta builds, not alpha builds.";
-    public const string NotSupporter = "This Patreon account isn't a supporter. Beta builds come with the supporter tier.";
-    public static string TooOld => Beta ? "This beta is too old to sign in. Download the latest beta." : "This alpha is too old to sign in. Download the latest alpha.";
-    public const string Stable = "Get the stable version";
-    public const string Quit = "Quit";
-    public static string Cli => Beta ? "This beta needs a Patreon supporter sign-in in the SCSKiller app first." : "This alpha needs a Patreon backer sign-in in the SCSKiller app first.";
+    public static string Title => Beta ? "Beta 版本面向 Patreon 支持者。" : "Alpha 版本面向 Patreon 赞助人。";
+    public static string Intro => Beta ? "使用 Patreon 登录一次，此后该 beta 版可离线运行。" : "使用 Patreon 登录一次，此后该 alpha 版可离线运行。";
+    public const string SignIn = "使用 Patreon 登录";
+    public const string Waiting = "请在浏览器中完成登录。";
+    public const string NotBacker = "该 Patreon 账号不是赞助人。Alpha 版本需赞助人等级。";
+    public const string SupporterOnly = "你的等级包含 beta 版本，不包含 alpha 版本。";
+    public const string NotSupporter = "该 Patreon 账号不是支持者。Beta 版本需支持者等级。";
+    public static string TooOld => Beta ? "该 beta 版本过旧，无法登录。请下载最新 beta 版。" : "该 alpha 版本过旧，无法登录。请下载最新 alpha 版。";
+    public const string Stable = "获取稳定版";
+    public const string Quit = "退出";
+    public static string Cli => Beta ? "该 beta 版本需要先在 SCSKiller 应用中使用 Patreon 支持者身份登录。" : "该 alpha 版本需要先在 SCSKiller 应用中使用 Patreon 赞助人身份登录。";
     public static readonly Uri StableUri = new($"https://github.com/{UpdateFeeds.GhRepo}/releases/latest");
 
     /// <summary>From the build's version, never a setting: stable and internal builds have no gate.</summary>

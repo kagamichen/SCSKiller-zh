@@ -26,19 +26,19 @@ static class AesKeyDialog
 
     public static (ContentDialog Dialog, TextBox Box) Dialog(string title, string? reason, bool aes)
     {
-        var box = new TextBox { PlaceholderText = aes ? MultiKeyHint : "0x followed by 64 hex digits", Classes = { "clearButton" }, AcceptsReturn = aes, MaxHeight = 160 };
+        var box = new TextBox { PlaceholderText = aes ? MultiKeyHint : "0x 开头的 64 位十六进制数字", Classes = { "clearButton" }, AcceptsReturn = aes, MaxHeight = 160 };
         var panel = new StackPanel
         {
             Spacing = 12,
             Children =
             {
                 new TextBlock { TextWrapping = TextWrapping.Wrap, Text = (aes ? AesIntro : GameKeyIntro) +
-                    " If you have the key, paste it here: it's checked against the game's files and kept on this PC only." },
-                new StackPanel { Spacing = 8, Children = { new TextBlock { Text = aes ? "AES key" : "Game key" }, box } },
+                    "如果你有密钥，请粘贴到这里：它会与游戏文件核对，并且只保存在这台电脑上。" },
+                new StackPanel { Spacing = 8, Children = { new TextBlock { Text = aes ? "AES 密钥" : "游戏密钥" }, box } },
             },
         };
         if (reason != null) panel.Children.Insert(0, new TextBlock { Text = reason, TextWrapping = TextWrapping.Wrap });
-        return (new ContentDialog { Title = title, Content = panel, CloseButtonText = "Close", PrimaryButtonText = "Unlock", DefaultButton = ContentDialogButton.Close }, box);
+        return (new ContentDialog { Title = title, Content = panel, CloseButtonText = "关闭", PrimaryButtonText = "解锁", DefaultButton = ContentDialogButton.Close }, box);
     }
 
     /// <summary>The lines that didn't work, each with why. <paramref name="stored"/>: the others were kept.</summary>
@@ -46,10 +46,10 @@ static class AesKeyDialog
     {
         var panel = new StackPanel { Spacing = 4 };
         panel.Children.AddRange(refused.Select(r => new TextBlock { Text = Format.Sentence(r.TrimEnd('.')) + ".", TextWrapping = TextWrapping.Wrap }));
-        return new ContentDialog { Title = stored ? "Some keys didn't work" : refused.Count > 1 ? "Those keys didn't work" : "That key didn't work", Content = panel, CloseButtonText = "OK" };
+        return new ContentDialog { Title = stored ? "部分密钥无效" : refused.Count > 1 ? "这些密钥无效" : "该密钥无效", Content = panel, CloseButtonText = "确定" };
     }
 
-    const string MultiKeyHint = "0x and 64 hex digits, one key per line";
-    const string AesIntro = "SCSKiller couldn't find this game's key in its exe (protected exes hide it).";
-    const string GameKeyIntro = "With this game's key, SCSKiller compiles it without a recording.";
+    const string MultiKeyHint = "0x 开头的 64 位十六进制数字，每行一个密钥";
+    const string AesIntro = "SCSKiller 没能在该游戏的 exe 中找到它的密钥（受保护的 exe 会隐藏密钥）。";
+    const string GameKeyIntro = "有了该游戏的密钥，SCSKiller 无需记录即可编译它。";
 }

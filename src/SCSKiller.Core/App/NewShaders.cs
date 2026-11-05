@@ -56,7 +56,7 @@ public static class NewShaders
     }
 
     /// <summary>The "Compiling new shaders" notification's line on when they compile.</summary>
-    public static string When(Settings s) => s.NewShadersRightAway ? "They compile now." : "They compile when the PC is idle.";
+    public static string When(Settings s) => s.NewShadersRightAway ? "它们将立即编译。" : "它们将在电脑空闲时编译。";
 
     /// <summary>The games to notify about now and the notified store to keep (<see cref="Plan"/> with every game on Notify).</summary>
     public static (IReadOnlyList<GameState> Due, Dictionary<string, string> Notified) Due(IEnumerable<GameState> games,

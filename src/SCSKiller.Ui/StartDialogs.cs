@@ -57,8 +57,8 @@ static class StartDialogs
         foreach (var p in c.Paragraphs) panel.Children.Add(new TextBlock { Text = p, TextWrapping = TextWrapping.Wrap });
         if (c.Link != null) panel.Children.Add(new HyperlinkButton { Content = c.Link.Text, NavigateUri = new Uri(c.Link.Url), Padding = new(0) });
         var share = Box(c.Share);
-        var diagnostics = Box("Share diagnostics to help fix problems");
-        var active = Box("Send an anonymous daily check", "Helps us count active installs so we can size our servers. Once a day, the app's version and GPU vendor, no identifier.");
+        var diagnostics = Box("共享诊断数据以帮助修复问题");
+        var active = Box("发送匿名每日活跃检查", "帮助我们统计活跃安装量，以便合理配置服务器规模。每天一次，仅包含应用版本和 GPU 厂商，不含任何标识符。");
         panel.Children.AddRange([share, diagnostics, active]);
         var dialog = new ContentDialog { Title = c.Title, Content = panel, PrimaryButtonText = c.SignIn, CloseButtonText = c.Dismiss, DefaultButton = ContentDialogButton.Primary };
         return (dialog, result => new(share.IsChecked == true, diagnostics.IsChecked == true, active.IsChecked == true, result == ContentDialogResult.Primary));
@@ -78,7 +78,7 @@ static class StartDialogs
 
     public static ContentDialog ActiveCheckDialog() => new()
     {
-        Title = "Anonymous daily check",
+        Title = "匿名每日活跃检查",
         Content = new StackPanel
         {
             Spacing = 8,
@@ -86,14 +86,14 @@ static class StartDialogs
             {
                 new TextBlock
                 {
-                    Text = "Once a day SCSKiller can tell our server that an install is active, with its version and GPU vendor and no identifier. "
-                        + "This helps us count active installs so we can size our servers. It's off until you turn it on.",
+                    Text = "SCSKiller 每天可以向我们的服务器报告一次该安装处于活跃状态，仅附带版本和 GPU 厂商，不含任何标识符。"
+                        + "这有助于我们统计活跃安装量，以便合理配置服务器规模。该功能默认关闭，需要你手动开启。",
                     TextWrapping = TextWrapping.Wrap,
                 },
-                new TextBlock { Text = "Change it any time in Settings.", TextWrapping = TextWrapping.Wrap, Classes = { "Caption" } },
+                new TextBlock { Text = "可随时在设置中更改。", TextWrapping = TextWrapping.Wrap, Classes = { "Caption" } },
             },
         },
-        PrimaryButtonText = "Turn it on", CloseButtonText = "Keep it off", DefaultButton = ContentDialogButton.None,   // no nudge either way
+        PrimaryButtonText = "开启", CloseButtonText = "保持关闭", DefaultButton = ContentDialogButton.None,   // no nudge either way
     };
 
     static async Task<TraversalMode?> AskTraversalAsync() => await TryShowAsync(TraversalDialog(TraversalFix.LowVram(Host.Core.Vendor.Gpu))) is { } r
@@ -131,9 +131,9 @@ static class StartDialogs
             await Task.Run(() => k.OldPlansAnswered(id, keep: !clear));
             if (!clear) return;
             string? error;
-            try { error = n.Compile ? await Task.Run(() => k.ClearGameCache(id)) ? null : "No shader-cache files of this game were found." : await Task.Run(() => k.DeleteOrphanedD3DSCache(id)) > 0 ? null : "No earlier versions' shader cache could be deleted."; }
+            try { error = n.Compile ? await Task.Run(() => k.ClearGameCache(id)) ? null : "未找到该游戏的着色器缓存文件。" : await Task.Run(() => k.DeleteOrphanedD3DSCache(id)) > 0 ? null : "未能删除早期版本的着色器缓存。"; }
             catch (Exception e) { error = e.Message; }
-            if (error != null) await TryShowAsync(new ContentDialog { Title = "Couldn't clear the cache", Content = error, CloseButtonText = "OK" });
+            if (error != null) await TryShowAsync(new ContentDialog { Title = "无法清除缓存", Content = error, CloseButtonText = "确定" });
             else if (n.Compile) k.Compile(id);
         }
         finally { askingOldPlans = false; }
@@ -147,8 +147,8 @@ static class StartDialogs
 
     static async Task<bool?> AskDiagnosticsAsync() => await TryShowAsync(new ContentDialog
     {
-        Title = "Share diagnostics to help fix problems?",
-        Content = "When a compile fails, send its error codes, once per compile. You can change this in Settings.",
-        PrimaryButtonText = "Share diagnostics", CloseButtonText = "No thanks", DefaultButton = ContentDialogButton.Close,
+        Title = "共享诊断数据以帮助修复问题？",
+        Content = "当编译失败时，发送其错误代码，每次编译一条。你可以在设置中更改此选项。",
+        PrimaryButtonText = "共享诊断数据", CloseButtonText = "暂不", DefaultButton = ContentDialogButton.Close,
     }) is { } r ? r == ContentDialogResult.Primary : null;
 }

@@ -333,7 +333,7 @@ public partial class App : Application
 
     public static ContentDialog Confirm(string title, object? content, string primaryText, ContentDialogButton defaultButton = ContentDialogButton.Close) => new()
     {
-        Title = title, Content = content, PrimaryButtonText = primaryText, CloseButtonText = "Cancel", DefaultButton = defaultButton,
+        Title = title, Content = content, PrimaryButtonText = primaryText, CloseButtonText = "取消", DefaultButton = defaultButton,
     };
 
     /// <summary>Over the main window, or over <paramref name="on"/>'s window.</summary>

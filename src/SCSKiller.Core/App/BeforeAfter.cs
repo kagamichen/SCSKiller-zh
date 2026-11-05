@@ -12,25 +12,25 @@ public static partial class BeforeAfter
     public const int SmoothStutters = 3;
 
     // Every user-facing line of the report and the share text
-    const string NoFrames = "The {0} run has no frame times";
-    const string NoCreates = "The {0} run has no pipeline log";
-    const string TooShort = "The {0} run had {1} of play, play at least {2}.";
-    const string LibraryLoads = "The after run loaded {0} more pipelines from the game's own cache, not counted for SCSKiller";
-    const string OtherSettings = "The runs had different resolutions or display formats: {0} before, {1} after";
-    const string OverlayOnce = "The in-game countdown was on in one run only";
-    const string MaxCompiled = "The after run was compiled with Max compile";
-    const string Crashed = "The game didn't close normally in the before run";
-    public const string MaybeWarm = "AMD's DirectX 11 driver cache can't be checked, so the before run may not have been fully cold";
-    public const string VulkanNotCold = "Some of the driver's Vulkan cache couldn't be set aside or cleared, so the before run may not have been fully cold";
-    const string MaybeHelped = "The game's DirectX 11 driver cache couldn't be told from another app's, so the after run may have used the before run's";
-    const string FrameGenBoth = "Frame generation was {0} in both runs.";
-    const string FrameGenOne = "Frame generation was on in the {0} run only.";
-    const string Share = "Shader compilation stutter in {0}: {1} → {2} in {3} of play after SCSKiller precompiled its shaders.";
-    const string ShareReady = " {0}% of pipelines were ready instead of {1}%.";
-    const string ShareSmooth = "{0} was already smooth here: SCSKiller took it from {1}% to {2}% of pipelines ready.";
-    const string ShareSmoothNoShare = "{0} was already smooth here: {1} → {2} shader compilation stutters in {3} of play with SCSKiller.";
-    const string ShareDx11 = "{0} on DirectX 11: {1} → {2} stutters of 50 ms or more in {3} of play, before and after SCSKiller precompiled its shaders.";
-    public const string Dx11Label = "DirectX 11: SCSKiller can't tell shader compilation stutters from other stutters";
+    const string NoFrames = "“{0}”一场没有帧时间数据";
+    const string NoCreates = "“{0}”一场没有管线日志";
+    const string TooShort = "“{0}”一场只游玩了 {1}，请至少游玩 {2}。";
+    const string LibraryLoads = "“之后”一场从游戏自带缓存多加载了 {0} 条管线，不计入 SCSKiller";
+    const string OtherSettings = "两场录制分辨率或显示格式不同：之前 {0}，之后 {1}";
+    const string OverlayOnce = "游戏内倒计时只在其中一场开启";
+    const string MaxCompiled = "“之后”一场使用了完整编译";
+    const string Crashed = "“之前”一场游戏未正常退出";
+    public const string MaybeWarm = "AMD 的 DirectX 11 驱动缓存无法检查，“之前”一场可能并非完全冷缓存";
+    public const string VulkanNotCold = "驱动的部分 Vulkan 缓存无法保留或清除，“之前”一场可能并非完全冷缓存";
+    const string MaybeHelped = "该游戏的 DirectX 11 驱动缓存无法与其他应用区分，“之后”一场可能用到了“之前”一场的缓存";
+    const string FrameGenBoth = "两场录制的帧生成为{0}。";
+    const string FrameGenOne = "帧生成只在“{0}”一场开启。";
+    const string Share = "{0} 的着色器编译卡顿：SCSKiller 预编译其着色器后，{3} 游戏时长内 {1} → {2}。";
+    const string ShareReady = " 管线就绪率从 {1}% 提升到 {0}%。";
+    const string ShareSmooth = "{0} 在本机本已流畅：SCSKiller 将管线就绪率从 {1}% 提升到 {2}%。";
+    const string ShareSmoothNoShare = "{0} 在本机本已流畅：使用 SCSKiller 后，{3} 游戏时长内着色器编译卡顿 {1} → {2}。";
+    const string ShareDx11 = "{0}（DirectX 11）：SCSKiller 预编译前后，{3} 游戏时长内 50 ms 以上卡顿 {1} → {2}。";
+    public const string Dx11Label = "DirectX 11：SCSKiller 无法区分着色器编译卡顿与其他卡顿";
     const string ShareLink = " scskiller.com";
     const int ShareMax = 280, LinkWeight = 23;   // X's limit; X counts any link as 23
 
@@ -41,12 +41,12 @@ public static partial class BeforeAfter
     /// <summary>Why the run doesn't count, one line for the button's note; null = it counts.</summary>
     public static string? RunProblem(SessionSnapshot? run, bool before)
     {
-        var which = before ? "before" : "after";
+        var which = before ? "之前" : "之后";
         if (run == null || run.Frames == 0) return F(NoFrames, which);
         if (run.Creates == null) return F(NoCreates, which);
         if (run.PlaySeconds < MinPlay.TotalSeconds)
-            return F(TooShort, which, run.PlaySeconds < 60 ? "under a minute" : $"{(int)(run.PlaySeconds / 60)} min",
-                $"{(int)MinPlay.TotalMinutes} min");
+            return F(TooShort, which, run.PlaySeconds < 60 ? "不到 1 分钟" : $"{(int)(run.PlaySeconds / 60)} 分钟",
+                $"{(int)MinPlay.TotalMinutes} 分钟");
         return null;
     }
 
@@ -77,7 +77,7 @@ public static partial class BeforeAfter
         if (notCold != null) notes.Add(notCold);
         else if (afterHelped) notes.Add(MaybeHelped);
         if (before.FrameGen is { } fb && after.FrameGen is { } fa)   // a run whose module loaded but whose frames can't tell says nothing
-            notes.Add(fb == fa ? F(FrameGenBoth, fb ? "on" : "off") : F(FrameGenOne, fb ? "before" : "after"));
+            notes.Add(fb == fa ? F(FrameGenBoth, fb ? "开启" : "关闭") : F(FrameGenOne, fb ? "之前" : "之后"));
         return new Comparison(b, a, Math.Abs(b.PlaySeconds - a.PlaySeconds) > 0.1 * Math.Min(b.PlaySeconds, a.PlaySeconds),
             !dx11 && b.ShaderStutters < SmoothStutters, notes, dx11);
     }
@@ -90,7 +90,7 @@ public static partial class BeforeAfter
     public static string ShareText(string game, Comparison c)
     {
         var (b, a) = PlayMinutes(c);
-        var span = b == a ? $"{b} minutes" : $"{b} and {a} minutes";
+        var span = b == a ? $"{b} 分钟" : $"{b} 和 {a} 分钟";
         var (before, after) = (c.Before.ReadyShare, c.After.ReadyShare);
         string Text(string name) =>
             (c.Dx11 ? F(ShareDx11, name, c.Before.Hitches, c.After.Hitches, span)

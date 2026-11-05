@@ -7,6 +7,12 @@
   cache before you play, so the game doesn't stop to compile them mid-game. Free and open source, for Windows.
 </p>
 
+> [!NOTE]
+> **非官方中文版**：本仓库（SCSKiller-zh）是 [SCSKiller](https://github.com/BlueHeisenberg/SCSKiller) 的社区汉化
+> fork，仅将软件界面翻译为简体中文，与原作者无关、不由其维护或背书。README 中的测量数据与截图为
+> SCSKiller 原项目所有，仅作介绍引用；本 fork 的构建版本、缺陷与翻译问题由 fork 维护者负责。软件本身的
+> 问题请反馈至[原仓库](https://github.com/BlueHeisenberg/SCSKiller/issues)，翻译问题欢迎在本仓库提 issue。
+
 <p align="center">
   <a href="https://github.com/BlueHeisenberg/SCSKiller/releases/latest"><img alt="Latest release" src="https://img.shields.io/github/v/release/BlueHeisenberg/SCSKiller"></a>
   <a href="https://github.com/BlueHeisenberg/SCSKiller/releases"><img alt="Downloads" src="https://img.shields.io/github/downloads/BlueHeisenberg/SCSKiller/total"></a>

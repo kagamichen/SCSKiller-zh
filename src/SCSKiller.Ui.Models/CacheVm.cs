@@ -63,7 +63,7 @@ public sealed class CacheVm : Bindable
     }
 
     public CacheInventory? Inventory => read;
-    public string Total => read == null ? "Reading the caches…" : split;
+    public string Total => read == null ? "正在读取缓存…" : split;
     public string? UpperNote { get; private set; }
     public string? Warning { get; private set; }
     public bool HasWarning => Warning != null;
@@ -84,13 +84,13 @@ public sealed class CacheVm : Bindable
         try
         {
             var r = await Task.Run(() => Host.Core.DeleteCaches(items));
-            Result = $"Deleted {Format.Bytes(r.Bytes)} in {r.Files} file{(r.Files == 1 ? "" : "s")}."
-                + (r.Skipped.Count > 0 ? $" Skipped {r.Skipped.Count}:\n" + string.Join("\n", r.Skipped) : "");
+            Result = $"已删除 {Format.Bytes(r.Bytes)}，共 {r.Files} 个文件{(r.Files == 1 ? "" : "")}。"
+                + (r.Skipped.Count > 0 ? $" 跳过 {r.Skipped.Count} 项：\n" + string.Join("\n", r.Skipped) : "");
             ResultSeverity = r.Skipped.Count > 0 ? InfoBarSeverity.Warning : InfoBarSeverity.Success;
         }
         catch (Exception e)
         {
-            (Result, ResultSeverity) = ($"Nothing was deleted: {e.Message}", InfoBarSeverity.Error);
+            (Result, ResultSeverity) = ($"未删除任何内容：{e.Message}", InfoBarSeverity.Error);
         }
         Deleting = false;
         Refresh();
@@ -99,16 +99,16 @@ public sealed class CacheVm : Bindable
 
     long OldDriver => read?.Bytes(CacheGroupKind.OldDriver) ?? 0;
     public bool HasOldDriver => OldDriver > 0;
-    public string OldDriverText => $"{Format.Bytes(OldDriver)} of cache files are from before the current driver was installed on {read?.DriverInstalled?.ToLocalTime():d}. It hasn't used them since.";
-    public string FreeText => $"Free {Format.Bytes(OldDriver)}";
+    public string OldDriverText => $"{Format.Bytes(OldDriver)} 的缓存文件来自 {read?.DriverInstalled?.ToLocalTime():d} 安装当前驱动之前，此后驱动从未使用过它们。";
+    public string FreeText => $"释放 {Format.Bytes(OldDriver)}";
     public IReadOnlyList<CacheItem> OldDriverItems => read?.Groups.Where(g => g.Kind == CacheGroupKind.OldDriver).SelectMany(g => g.Items).ToList() ?? [];
 
     public IReadOnlyList<CacheFolderRow> Folders => read?.Folders.Select(f => new CacheFolderRow(f.Label, f.Path,
-        f.Cap is { } cap ? $"{Format.Bytes(f.Bytes)} of {Format.Bytes(cap)}" : Format.Bytes(f.Bytes),
-        f.TargetMissing ? "This folder is a link whose target is missing"
-        : f.Cap is { } full && f.Bytes >= full * 9 / 10 ? "Nearly full: the driver removes the least recently used games' caches when a game starts"
-        : f.Final != null ? $"Stored in {f.Final} through a link"
-        : !f.Exists ? "Not created yet" : null)).ToList() ?? [];
+        f.Cap is { } cap ? $"{Format.Bytes(f.Bytes)} / {Format.Bytes(cap)}" : Format.Bytes(f.Bytes),
+        f.TargetMissing ? "此文件夹是一个链接，其目标不存在"
+        : f.Cap is { } full && f.Bytes >= full * 9 / 10 ? "接近已满：启动游戏时驱动会移除最近最少使用的游戏缓存"
+        : f.Final != null ? $"通过链接存储在 {f.Final}"
+        : !f.Exists ? "尚未创建" : null)).ToList() ?? [];
 
     public IReadOnlyList<CacheGroupRow> Groups => read?.Groups.Select(g =>
     {
@@ -128,10 +128,10 @@ public sealed class CacheVm : Bindable
     public static string Consequence(CacheGroupKind kind, IReadOnlyList<CacheItem> items) => kind switch
     {
         CacheGroupKind.Installed or CacheGroupKind.Uninstalled =>
-            $"These games compile their shaders again on their next compile, and stutter until then: {string.Join(", ", items.Select(i => i.Name))}.",
-        CacheGroupKind.OldDriver => "The current driver hasn't used these files since it was installed. Nothing needs to compile again.",
-        CacheGroupKind.OldBuild => "The games don't read these files.",
-        CacheGroupKind.OtherVendor => "Apps that run on that GPU build their cache again as they run.",
-        _ => "These apps and games build their cache again as they run, and may stutter until they have.",
-    } + string.Concat(items.Select(i => i.Note).OfType<string>().Select(n => " " + n)) + " Files in use are skipped.";
+            $"这些游戏将在下次编译时重新编译着色器，在此之前会出现卡顿：{string.Join("、", items.Select(i => i.Name))}。",
+        CacheGroupKind.OldDriver => "当前驱动自安装以来从未使用过这些文件，无需重新编译。",
+        CacheGroupKind.OldBuild => "游戏不会读取这些文件。",
+        CacheGroupKind.OtherVendor => "在该 GPU 上运行的应用会在运行过程中重新构建缓存。",
+        _ => "这些应用和游戏会在运行过程中重新构建缓存，在此之前可能出现卡顿。",
+    } + string.Concat(items.Select(i => i.Note).OfType<string>().Select(n => " " + n)) + " 使用中的文件将被跳过。";
 }

@@ -21,7 +21,7 @@ sealed class StartFailedWindow : Window
         var icon = new TextBlock { Text = Glyphs.Warning, FontSize = 24, VerticalAlignment = VerticalAlignment.Top };
         icon.Classes.Add("Icon");
         icon.Bind(TextBlock.ForegroundProperty, icon.GetResourceObservable("SystemFillColorCriticalBrush"));
-        var ok = new Button { Content = "OK", IsDefault = true, IsCancel = true, MinWidth = 96, HorizontalAlignment = HorizontalAlignment.Right };
+        var ok = new Button { Content = "确定", IsDefault = true, IsCancel = true, MinWidth = 96, HorizontalAlignment = HorizontalAlignment.Right };
         ok.Classes.Add("accent");
         ok.Click += (_, _) => Close();
         Content = new StackPanel

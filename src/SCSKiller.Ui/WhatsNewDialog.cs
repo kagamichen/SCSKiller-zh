@@ -43,6 +43,6 @@ public static class WhatsNewDialog
             panel.Children.Add(text);
         }
         // as tall as the window leaves room for: the release notes run long
-        return new ContentDialog { Title = $"What's new in {section.Version}", Content = panel, CloseButtonText = "Close", [!Layoutable.MaxWidthProperty] = new DynamicResourceExtension("TextFit.880"), ContentMaxHeight = double.PositiveInfinity, Margin = new(0, 32) };
+        return new ContentDialog { Title = $"{section.Version} 版本的新增内容", Content = panel, CloseButtonText = "关闭", [!Layoutable.MaxWidthProperty] = new DynamicResourceExtension("TextFit.880"), ContentMaxHeight = double.PositiveInfinity, Margin = new(0, 32) };
     }
 }

@@ -132,11 +132,11 @@ public sealed partial class LibraryPage : UserControl
     {
         var menu = (MenuFlyout)FoldersButton.Flyout!;
         menu.Items.Clear();
-        var add = new MenuItem { Header = "Add a folder of games…", Icon = Glyph(Glyphs.Add) };
+        var add = new MenuItem { Header = "添加游戏文件夹…", Icon = Glyph(Glyphs.Add) };
         add.Click += OnAddFolder;
         menu.Items.Add(add);
-        var leave = new MenuItem { Header = "Leave out a folder…", Icon = Glyph(Glyphs.Blocked) };
-        ToolTip.SetTip(leave, "Games installed in it are not listed or read");
+        var leave = new MenuItem { Header = "排除文件夹…", Icon = Glyph(Glyphs.Blocked) };
+        ToolTip.SetTip(leave, "安装在其中的游戏不会被列出或读取");
         leave.Click += OnLeaveOutFolder;
         menu.Items.Add(leave);
         var folders = Fmt.Added?.Folders ?? [];
@@ -145,11 +145,11 @@ public sealed partial class LibraryPage : UserControl
         {
             // a header's "_" marks an access key: doubled, it shows
             var item = new MenuItem { Header = folder.Replace("_", "__"), Icon = Glyph(Glyphs.Dismiss) };
-            ToolTip.SetTip(item, "Stop looking for games here");
+            ToolTip.SetTip(item, "不再在此处查找游戏");
             item.Click += async (_, _) =>
             {
-                if (!await App.ConfirmAsync("Stop looking for games here?",
-                        $"{folder}\n\nThe games SCSKiller found only in this folder leave the library. Nothing in the folder changes.", "Stop looking")) return;
+                if (!await App.ConfirmAsync("不再在此处查找游戏？",
+                        $"{folder}\n\n仅在这个文件夹中找到的游戏会离开游戏库。文件夹中的内容不会被改动。", "停止查找")) return;
                 if (Fmt.Added is { } added) await Task.Run(() => added.RemoveFolder(folder));
                 Vm.Rescan(force: false);
             };
@@ -159,8 +159,8 @@ public sealed partial class LibraryPage : UserControl
         if (leftOut.Count > 0) menu.Items.Add(new Separator());
         foreach (var folder in leftOut)
         {
-            var item = new MenuItem { Header = $"Left out: {folder.Replace("_", "__")}", Icon = Glyph(Glyphs.Refresh) };
-            ToolTip.SetTip(item, "Look for games here again");
+            var item = new MenuItem { Header = $"已排除：{folder.Replace("_", "__")}", Icon = Glyph(Glyphs.Refresh) };
+            ToolTip.SetTip(item, "再次在此处查找游戏");
             item.Click += async (_, _) =>
             {
                 await Task.Run(() => Host.Core.ScanFolderAgain(folder));
@@ -173,13 +173,13 @@ public sealed partial class LibraryPage : UserControl
     async void OnLeaveOutFolder(object? _, RoutedEventArgs __)
     {
         string? path;
-        try { path = (await App.Main.StorageProvider.OpenFolderPickerAsync(new() { Title = "Leave out this folder" })).FirstOrDefault()?.TryGetLocalPath(); }
-        catch (Exception ex) { await Message("Couldn't open the folder picker", ex.Message); return; }
+        try { path = (await App.Main.StorageProvider.OpenFolderPickerAsync(new() { Title = "排除此文件夹" })).FirstOrDefault()?.TryGetLocalPath(); }
+        catch (Exception ex) { await Message("无法打开文件夹选择器", ex.Message); return; }
         if (path == null) return;
         try { await Task.Run(() => Host.Core.LeaveOutFolder(path)); }
         catch (Exception ex) when (ex is ArgumentException or InvalidOperationException or IOException or UnauthorizedAccessException)
         {
-            await Message("Couldn't leave out this folder", ex.Message);
+            await Message("无法排除此文件夹", ex.Message);
             return;
         }
         Vm.Rescan(force: false);
@@ -191,13 +191,13 @@ public sealed partial class LibraryPage : UserControl
     async void OnAddFolder(object? _, RoutedEventArgs __)
     {
         string? path;
-        try { path = (await App.Main.StorageProvider.OpenFolderPickerAsync(new() { Title = "Look for games here" })).FirstOrDefault()?.TryGetLocalPath(); }
-        catch (Exception ex) { await Message("Couldn't open the folder picker", ex.Message); return; }
+        try { path = (await App.Main.StorageProvider.OpenFolderPickerAsync(new() { Title = "在此处查找游戏" })).FirstOrDefault()?.TryGetLocalPath(); }
+        catch (Exception ex) { await Message("无法打开文件夹选择器", ex.Message); return; }
         if (path == null || Fmt.Added is not { } added) return;
         try { await Task.Run(() => added.AddFolder(path)); }
         catch (Exception ex) when (ex is ArgumentException or IOException or UnauthorizedAccessException)
         {
-            await Message("Couldn't add this folder", ex.Message);
+            await Message("无法添加此文件夹", ex.Message);
             return;
         }
         Vm.Rescan(force: false);
@@ -210,25 +210,25 @@ public sealed partial class LibraryPage : UserControl
         string? path;
         try
         {
-            var picked = await App.Main.StorageProvider.OpenFilePickerAsync(new() { Title = "Add game", FileTypeFilter = [new(".exe") { Patterns = ["*.exe"] }] });
+            var picked = await App.Main.StorageProvider.OpenFilePickerAsync(new() { Title = "添加游戏", FileTypeFilter = [new(".exe") { Patterns = ["*.exe"] }] });
             path = picked.FirstOrDefault()?.TryGetLocalPath();
         }
-        catch (Exception ex) { await Message("Couldn't open the file picker", ex.Message); return; }
+        catch (Exception ex) { await Message("无法打开文件选择器", ex.Message); return; }
         if (path == null) return;
         ManualAdd added;
         try { added = await Task.Run(() => Host.Core.PreviewManualGame(path)); }   // reads the install's files
         catch (Exception ex)   // a rejection's message, or a data folder SCSKiller couldn't read
         {
-            await Message("Couldn't add this game", ex.Message);
+            await Message("无法添加此游戏", ex.Message);
             return;
         }
         if (!added.Existed)
         {
-            if (await GameFolderDialog.ShowAsync(added.Game, $"Add {added.Game.Name}", "Add game") is not { } folder) return;
+            if (await GameFolderDialog.ShowAsync(added.Game, $"添加 {added.Game.Name}", "添加游戏") is not { } folder) return;
             try { await Task.Run(() => Host.Core.AddManualGame(path, folder)); }
             catch (Exception ex)
             {
-                await Message("Couldn't add this game", ex.Message);
+                await Message("无法添加此游戏", ex.Message);
                 return;
             }
             Vm.Rescan(force: false);   // lists it under "Added by you" once its engine and anti-cheat are checked
@@ -236,17 +236,17 @@ public sealed partial class LibraryPage : UserControl
         }
         if (Host.Core.HiddenGames.Any(g => g.Id == added.Game.Id))
         {
-            await Message("Hidden from your library", $"You removed {added.Game.Name}. Show hidden brings it back.");
+            await Message("已从游戏库中隐藏", $"你移除过 {added.Game.Name}。显示隐藏项目可将其找回。");
             return;
         }
         var listed = Host.Core.Games.Any(s => s.Game.Id == added.Game.Id);
-        var where = added.Game.Store == Store.Manual ? "you added it already" : $"SCSKiller found it in {Fmt.StoreName(added.Game)}";
-        if (listed && await App.ConfirmAsync("Already in your library", $"{added.Game.Name} is in the list: {where}.", "Open", ContentDialogButton.Primary))
+        var where = added.Game.Store == Store.Manual ? "你已添加过它" : $"SCSKiller 在{Fmt.StoreName(added.Game)}中找到了它";
+        if (listed && await App.ConfirmAsync("已在游戏库中", $"{added.Game.Name} 已在列表中：{where}。", "打开", ContentDialogButton.Primary))
             App.Main.Navigate(typeof(DetailPage), added.Game.Id);
-        else if (!listed) await Message("Already in your library", $"{added.Game.Name}: {where}. Refresh the library to see it.");
+        else if (!listed) await Message("已在游戏库中", $"{added.Game.Name}：{where}。刷新游戏库即可看到它。");
     }
 
-    static Task Message(string title, string text) => App.ShowAsync(new ContentDialog { Title = title, Content = text, CloseButtonText = "OK" });
+    static Task Message(string title, string text) => App.ShowAsync(new ContentDialog { Title = title, Content = text, CloseButtonText = "确定" });
 
     void OnAddAll(object? _, RoutedEventArgs __) => Vm.AddAllReady();
     void OnAddRecommended(object? _, RoutedEventArgs __) => Vm.AddAllRecommended();
@@ -262,9 +262,9 @@ public sealed partial class LibraryPage : UserControl
     {
         e.Handled = true;
         var row = RowOf(sender);
-        var title = $"Why can't {row.Name} be compiled?";
+        var title = $"为什么 {row.Name} 无法编译？";
         if (!ScsKiller.NeedsAesKey(row.State))
-            await App.ShowAsync(new ContentDialog { Title = title, Content = row.Reason, CloseButtonText = "Close" });
+            await App.ShowAsync(new ContentDialog { Title = title, Content = row.Reason, CloseButtonText = "关闭" });
         else if (await AesKeyDialog.ShowAsync(row.Id, title, row.Reason)) Vm.Rescan();
     }
 
@@ -272,12 +272,12 @@ public sealed partial class LibraryPage : UserControl
     {
         e.Handled = true;
         var row = RowOf(sender);
-        if (!await App.ConfirmAsync($"Record {row.Name}?",
-                $"SCSKiller adds a small {Fmt.RecorderFiles(row.State)} next to the game that writes down every pipeline it creates. " +
-                "Play for about 5 minutes, close the game, then add it to the compile queue. You can remove it any time from the game's page.",
-                "Add recorder", ContentDialogButton.Primary)) return;
+        if (!await App.ConfirmAsync($"记录 {row.Name}？",
+                $"SCSKiller 会在游戏旁添加一个小型 {Fmt.RecorderFiles(row.State)}，记下它创建的每一条管线。 " +
+                "游玩约 5 分钟后关闭游戏，再把它加入编译队列。你可以随时在游戏页面移除它。",
+                "添加记录器", ContentDialogButton.Primary)) return;
         try { await Task.Run(() => Host.Core.InstallRecorder(row.Id)); }   // file IO and the game's re-evaluation
-        catch (Exception ex) { await App.ShowAsync(new ContentDialog { Title = "Couldn't add the recorder", Content = ex.Message, CloseButtonText = "OK" }); }
+        catch (Exception ex) { await App.ShowAsync(new ContentDialog { Title = "无法添加记录器", Content = ex.Message, CloseButtonText = "确定" }); }
         Vm.Refresh();
         FitRowsSoon();
     }

@@ -16,11 +16,11 @@ public sealed record QueueRow(string Id, int Number, string Name, string Exe, st
     public string Initials => Name.Length > 0 ? GameRow.InitialsOf(Name) : "";
     public bool CanUp => !First;
     public bool CanDown => !Last;
-    public string TopLabel => $"Move {Name} to the top";
-    public string BottomLabel => $"Move {Name} to the bottom";
-    public string UpLabel => $"Move {Name} up";
-    public string DownLabel => $"Move {Name} down";
-    public string RemoveLabel => $"Remove {Name} from the queue";
+    public string TopLabel => $"将 {Name} 移到最前";
+    public string BottomLabel => $"将 {Name} 移到最后";
+    public string UpLabel => $"将 {Name} 上移";
+    public string DownLabel => $"将 {Name} 下移";
+    public string RemoveLabel => $"从队列中移除 {Name}";
     public override string ToString() => Number > 0 ? $"{Number}. {Name}, {Note}, {Time}, {Cache}" : $"{Name}, {Note}";   // screen readers
 }
 
@@ -61,7 +61,7 @@ public sealed class QueueVm : Bindable
     public string CurrentDetail => cur is null ? "" : Fmt.Stage(cur) + (Fmt.ProgressText(cur) is { } p ? " · " + p : "") + (Fmt.Started(cur) is { } at ? " · " + at : "");
     public bool Indeterminate => Fmt.Indeterminate(cur);
     public double Percent => Fmt.Percent(cur);
-    public string PauseText => cur?.Stage == QueueStage.Paused ? "Resume" : "Pause";
+    public string PauseText => cur?.Stage == QueueStage.Paused ? "继续" : "暂停";
     public bool CacheWarn { get; private set; }
     public string CacheWarnText { get; private set; } = "";
     public string RuntimeWarnText { get; private set; } = "";
@@ -69,10 +69,10 @@ public sealed class QueueVm : Bindable
 
     public double Threads { get => Used; set { if ((int)value != Used) { S = S with { Threads = (int)value }; Changed(); } } }
     static int Used => ScsKiller.UsedThreads(S.Threads);
-    public string ThreadsText => $"{Used} of {Environment.ProcessorCount}";
+    public string ThreadsText => $"{Used} / {Environment.ProcessorCount}";
     public double MaxThreads => Environment.ProcessorCount;
     public int Priority { get => (int)S.Priority; set { if (value >= 0 && value != (int)S.Priority) { S = S with { Priority = (WarmPriority)value }; Changed(); } } }
-    public string CpuSummary => $"CPU use: {Used} of {Environment.ProcessorCount} threads, {(S.Priority == WarmPriority.BelowNormal ? "below-normal" : "idle")} priority";
+    public string CpuSummary => $"CPU 占用：{Environment.ProcessorCount} 个线程中的 {Used} 个，{(S.Priority == WarmPriority.BelowNormal ? "低于正常" : "空闲")}优先级";
 
     public void Refresh()
     {
@@ -86,7 +86,7 @@ public sealed class QueueVm : Bindable
         QueueRow Row(QueueItem q, int number, bool first = false, bool last = false)
         {
             var g = games.GetValueOrDefault(q.GameId);
-            var time = q.Stage == QueueStage.Done ? Format.Duration(g?.LastWarmTime) : Left(q) is { } t ? Format.Duration(t) + (q.Progress?.PerSecond > 0 ? " left" : "") : Format.Dash;
+            var time = q.Stage == QueueStage.Done ? Format.Duration(g?.LastWarmTime) : Left(q) is { } t ? Format.Duration(t) + (q.Progress?.PerSecond > 0 ? "剩余" : "") : Format.Dash;
             return new(q.GameId, number, g?.Game.Name ?? q.GameId, g?.Game.ExePath ?? "", NoteOf(q, g), time, g is null ? Format.Dash : Fmt.Cache(g), q.Stage, first, last);
         }
 
@@ -101,10 +101,10 @@ public sealed class QueueVm : Bindable
         var pending = queue.Where(Fmt.Active).ToList();
         var total = TimeSpan.FromTicks(pending.Sum(q => Left(q)?.Ticks ?? 0));
         bool unknown = pending.Any(q => Left(q) is null && !ScsKiller.Stalled(q));
-        Summary = pending.Count == 0 ? "Nothing queued"
-            : $"{pending.Count} game{(pending.Count == 1 ? "" : "s")} · "
-              + (total > TimeSpan.Zero ? $"about {Format.Duration(total)} in total{(unknown ? ", plus plans to build" : "")}" : "time known once the plans are built")
-              + (cur == null && !core.QueueRunning ? " · not started" : "");
+        Summary = pending.Count == 0 ? "队列中没有项目"
+            : $"{pending.Count} 个游戏{(pending.Count == 1 ? "" : "")} · "
+              + (total > TimeSpan.Zero ? $"总计约 {Format.Duration(total)}{(unknown ? "，另有待构建的方案" : "")}" : "构建方案后才知预计时间")
+              + (cur == null && !core.QueueRunning ? " · 未开始" : "");
 
         planned = pending.Sum(q => games.GetValueOrDefault(q.GameId)?.EstimatedCacheBytes ?? 0);
         var queued = pending.Select(q => games.GetValueOrDefault(q.GameId)).OfType<GameState>().ToList();
@@ -136,13 +136,13 @@ public sealed class QueueVm : Bindable
 
     static string NoteOf(QueueItem q, GameState? g) => q.Stage switch
     {
-        QueueStage.Failed => "Failed: " + q.Error,
+        QueueStage.Failed => "失败：" + q.Error,
         QueueStage.Stopped when (Fmt.FoldLine(q.GameId) ?? (ScsKiller.NotReached(g?.StatusReason) ? Format.Sentence(g!.StatusReason) : null)) is { } fold => fold,
-        QueueStage.Stopped when q.Progress is { } p => $"Stopped at {p.Done:N0} of {p.Total:N0}: add it again to continue" + (q.Note is { } n ? " · " + n : ""),
-        QueueStage.Stopped => "Stopped",
-        QueueStage.Done => q.Note is { } n ? "Done · " + n : "Done",
+        QueueStage.Stopped when q.Progress is { } p => $"停止于 {p.Done:N0} / {p.Total:N0}：重新添加以继续" + (q.Note is { } n ? " · " + n : ""),
+        QueueStage.Stopped => "已停止",
+        QueueStage.Done => q.Note is { } n ? "完成 · " + n : "完成",
         _ when q.Note != null => q.Note,
-        _ => g?.Plan is { } plan ? $"{plan.Recorded + plan.Generated + plan.MiddlewareItems:N0} pipelines{(plan.D3D11Shaders > 0 ? $" + {plan.D3D11Shaders:N0} DirectX 11 shaders" : "")}" : "plan is built first",
+        _ => g?.Plan is { } plan ? $"{plan.Recorded + plan.Generated + plan.MiddlewareItems:N0} 条管线{(plan.D3D11Shaders > 0 ? $" + {plan.D3D11Shaders:N0} 个 DirectX 11 着色器" : "")}" : "将先构建方案",
     };
 
     public void PauseOrResume() => Fmt.PauseOrResume(cur);

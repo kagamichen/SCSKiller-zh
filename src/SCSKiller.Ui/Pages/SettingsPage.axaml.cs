@@ -107,21 +107,21 @@ public sealed partial class SettingsPage : UserControl
     // Stands in for the website's recorder-anti-cheat page until it exists.
     public static ContentDialog AntiCheatDetailsDialog() => new()
     {
-        Title = "Recording in games with anti-cheat", CloseButtonText = "Close",
-        Content = "For one session, SCSKiller puts its recorder (a d3d12.dll) next to the game's exe.\n\n"
-            + "SCSKiller removes every file it places when the game exits, or after a crash at your next logon.\n\n"
-            + "Enabling the recorder in games with anti-cheat is at your own risk. SCSKiller isn't responsible for bans.",
+        Title = "在带反作弊的游戏中记录", CloseButtonText = "关闭",
+        Content = "在单次场次中，SCSKiller 会把它的记录器（一个 d3d12.dll）放到游戏的 exe 旁边。\n\n"
+            + "游戏退出时，SCSKiller 会移除它放置的所有文件；如果发生崩溃，则在你下次登录时移除。\n\n"
+            + "在带反作弊的游戏中启用记录器需自担风险。SCSKiller 不对封禁负责。",
     };
 
     async void OnAntiCheatDetails(object? _, RoutedEventArgs __) => await App.ShowAsync(AntiCheatDetailsDialog());
 
     async void OnRemoveRecorders(object? _, RoutedEventArgs __)
     {
-        if (Host.Core is not ScsKiller real || !await App.ConfirmAsync("Remove recorders?",
-                "SCSKiller removes its recorder from every game, then quits. Close your games first: a game that's running keeps its recorder. Recording resumes when SCSKiller starts again.", "Remove and quit")) return;
+        if (Host.Core is not ScsKiller real || !await App.ConfirmAsync("移除记录器？",
+                "SCSKiller 会从每个游戏中移除它的记录器，然后退出。请先关闭你的游戏：正在运行的游戏会保留其记录器。SCSKiller 再次启动后记录会继续。", "移除并退出")) return;
         var removed = await Task.Run(real.RemoveRecorders);
         string[] left = [.. removed.Games.Where(r => r.Left != null).Select(r => $"{real.Games.FirstOrDefault(s => s.Game.Id == r.GameId)?.Game.Name ?? r.Folder}: {r.Left}"),
-            .. removed.VulkanLeft is { } vulkan ? [$"Vulkan recorders' registrations: {vulkan}"] : Array.Empty<string>()];
+            .. removed.VulkanLeft is { } vulkan ? [$"Vulkan 记录器的注册项：{vulkan}"] : Array.Empty<string>()];
         if (left.Length == 0)
         {
             // a test identity's toast registration goes at quit
@@ -132,9 +132,9 @@ public sealed partial class SettingsPage : UserControl
         // SCSKiller stays open, so the user can remove them again once a game is closed
         await App.ShowAsync(new ContentDialog
         {
-            Title = "Some recorders are still in place",
-            Content = new TextBlock { Text = string.Join("\n", left) + "\n\nClose any game named here, then select Remove recorders again.", TextWrapping = TextWrapping.Wrap },
-            CloseButtonText = "OK",
+            Title = "部分记录器仍在原处",
+            Content = new TextBlock { Text = string.Join("\n", left) + "\n\n关闭此处列出的所有游戏，然后再次选择移除记录器。", TextWrapping = TextWrapping.Wrap },
+            CloseButtonText = "确定",
         });
     }
 
@@ -154,7 +154,7 @@ public sealed partial class SettingsPage : UserControl
                     new TextBlock { Text = Fmt.KeptSize(g.Kept!), Classes = { "Secondary" } },
                 },
             });
-            var remove = new Button { Content = "Remove", VerticalAlignment = VerticalAlignment.Center };
+            var remove = new Button { Content = "移除", VerticalAlignment = VerticalAlignment.Center };
             remove.Click += (_, _) => { Host.Core.DropKeptCache(g.Game.Id); rows.Children.Remove(row); Vm.Refresh(); };
             Grid.SetColumn(remove, 1);
             row.Children.Add(remove);
@@ -162,13 +162,13 @@ public sealed partial class SettingsPage : UserControl
         }
         return new()
         {
-            Title = "Kept aside", CloseButtonText = "Close",
+            Title = "另行保留", CloseButtonText = "关闭",
             Content = new StackPanel
             {
                 Spacing = 14, MinWidth = 420,
                 Children =
                 {
-                    new TextBlock { Text = "Removing frees the space. The game is kept again after its next compile.", TextWrapping = TextWrapping.Wrap },
+                    new TextBlock { Text = "移除可释放空间。该游戏在下次编译后会被再次保留。", TextWrapping = TextWrapping.Wrap },
                     new ScrollViewer { MaxHeight = 360, Content = rows },
                 },
             },

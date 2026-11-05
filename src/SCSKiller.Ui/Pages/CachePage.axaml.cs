@@ -70,18 +70,18 @@ public sealed partial class CachePage : UserControl
 
     void OnDeleteItem(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Control)?.DataContext is CacheItemRow r) _ = Confirm($"Delete {r.Name} ({r.Size})?", r.Kind, [r.Item]);
+        if ((sender as Control)?.DataContext is CacheItemRow r) _ = Confirm($"删除 {r.Name}（{r.Size}）？", r.Kind, [r.Item]);
     }
 
     void OnDeleteGroup(object? sender, RoutedEventArgs e)
     {
-        if ((sender as Control)?.DataContext is CacheGroupRow g) _ = Confirm($"Delete {g.Title} ({g.Size})?", g.Group.Kind, g.Group.Items);
+        if ((sender as Control)?.DataContext is CacheGroupRow g) _ = Confirm($"删除 {g.Title}（{g.Size}）？", g.Group.Kind, g.Group.Items);
     }
 
     void OnFreeOldDriver(object? _, RoutedEventArgs __) =>
-        _ = Confirm($"{Vm.FreeText} the new driver no longer uses?", CacheGroupKind.OldDriver, Vm.OldDriverItems, "Free");
+        _ = Confirm($"{Vm.FreeText}（新驱动不再使用）？", CacheGroupKind.OldDriver, Vm.OldDriverItems, "释放");
 
-    async Task Confirm(string title, CacheGroupKind kind, IReadOnlyList<CacheItem> items, string action = "Delete")
+    async Task Confirm(string title, CacheGroupKind kind, IReadOnlyList<CacheItem> items, string action = "删除")
     {
         var text = new TextBlock { Text = CacheVm.Consequence(kind, items), TextWrapping = TextWrapping.Wrap };
         if (await App.ShowAsync(App.Confirm(title, text, action)) == ContentDialogResult.Primary) await Vm.DeleteAsync(items);
@@ -98,9 +98,9 @@ public sealed partial class CachePage : UserControl
     public static (ContentDialog Dialog, CheckBox Others) ClearEverythingDialog(CacheInventory inv)
     {
         var warning = new TextBlock { Text = ScsKiller.EverythingWarning(inv, false), TextWrapping = TextWrapping.Wrap };
-        var others = new CheckBox { Content = $"Also delete {ScsKiller.OtherApps.ToLowerInvariant()} ({Format.Bytes(inv.Bytes(CacheGroupKind.Unattributed))})" };
+        var others = new CheckBox { Content = $"同时删除 {ScsKiller.OtherApps.ToLowerInvariant()}（{Format.Bytes(inv.Bytes(CacheGroupKind.Unattributed))}）" };
         others.IsCheckedChanged += (_, _) => warning.Text = ScsKiller.EverythingWarning(inv, others.IsChecked == true);
-        var content = new StackPanel { Spacing = 12, Children = { warning, others, new TextBlock { Text = "Files in use are skipped.", TextWrapping = TextWrapping.Wrap } } };
-        return (App.Confirm("Clear every shader cache?", content, "Clear everything"), others);
+        var content = new StackPanel { Spacing = 12, Children = { warning, others, new TextBlock { Text = "使用中的文件会被跳过。", TextWrapping = TextWrapping.Wrap } } };
+        return (App.Confirm("清除所有着色器缓存？", content, "全部清除"), others);
     }
 }

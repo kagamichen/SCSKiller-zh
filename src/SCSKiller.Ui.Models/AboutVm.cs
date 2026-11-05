@@ -13,19 +13,19 @@ public sealed record Notice(string Name, string Version, string Licence, string 
     /// <summary>The SPDX id, or what a LicenseRef / NOASSERTION means in words.</summary>
     public string LicenceName => Licence switch
     {
-        "NOASSERTION" => "No licence stated",
-        _ when Licence.StartsWith("LicenseRef-Microsoft") => "Microsoft licence",
-        _ when Licence.EndsWith("Proprietary") => "Proprietary",
+        "NOASSERTION" => "未声明许可证",
+        _ when Licence.StartsWith("LicenseRef-Microsoft") => "微软许可证",
+        _ when Licence.EndsWith("Proprietary") => "专有许可",
         _ => Licence,
     };
     public string Detail => $"{LicenceName} · {Copyright}";
     public bool HasNote => Note.Length > 0;
-    public string Body => Text.Length > 0 ? Text : "No licence text is published with it.";
+    public string Body => Text.Length > 0 ? Text : "未随其发布许可证文本。";
 }
 
 public sealed class AboutVm : Bindable
 {
-    static readonly string Build = "Version " + (typeof(AboutVm).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "?");
+    static readonly string Build = "版本 " + (typeof(AboutVm).Assembly.GetCustomAttribute<AssemblyInformationalVersionAttribute>()?.InformationalVersion ?? "?");
     public string Version => $"{Build} · {(UpdatedElsewhere ? UpdateChannels.Shown(AppVersion.Current.Channel) : UpdateChannels.Shown(Host.Core.Settings.UpdateChannel, AppVersion.Current.Channel, Host.Account?.Status?.Ent, Host.Account?.SignedIn == true))}";
 
     // "Download source code": stable opens the public repo's tag; alpha and beta
@@ -43,21 +43,21 @@ public sealed class AboutVm : Bindable
             Process.Start(new ProcessStartInfo(url.AbsoluteUri) { UseShellExecute = true })?.Dispose();
             return;
         }
-        (SourceIdle, SourceStatus) = (false, "Downloading…");
+        (SourceIdle, SourceStatus) = (false, "正在下载…");
         Changed();
         try
         {
             using var http = new HttpClient(RouteFailover.Default, disposeHandler: false) { Timeout = TimeSpan.FromMinutes(10) };
             using var request = new HttpRequestMessage(HttpMethod.Get, url);
-            request.Headers.Authorization = new("Bearer", (Host.Account is { } account ? await account.GetAccessTokenAsync() : null) ?? throw new InvalidOperationException("sign in with Patreon first"));
+            request.Headers.Authorization = new("Bearer", (Host.Account is { } account ? await account.GetAccessTokenAsync() : null) ?? throw new InvalidOperationException("请先登录 Patreon"));
             using var r = await http.SendAsync(request, HttpCompletionOption.ResponseHeadersRead);
             r.EnsureSuccessStatusCode();
             var file = Path.Combine(DownloadsFolder(), $"SCSKiller-source-{v}.zip");
             await using (var f = File.Create(file + ".partial")) await r.Content.CopyToAsync(f);
             File.Move(file + ".partial", file, overwrite: true);
-            SourceStatus = "Saved to " + file;
+            SourceStatus = "已保存到 " + file;
         }
-        catch (Exception e) { SourceStatus = "Couldn't download it: " + e.Message; }
+        catch (Exception e) { SourceStatus = "下载失败：" + e.Message; }
         SourceIdle = true;
         Changed();
     }
@@ -105,8 +105,8 @@ public sealed class AboutVm : Bindable
     public bool UpdatedElsewhere => UpdatesFrom != null;
     public bool ShowsAutoInstall => ShowsCheck && (!Wired || Updater.Channel != UpdateChannels.Internal);
     public bool CanCheck => !Updater.Checking && !Updater.Restarting;
-    public string UpdateNote => Updater.Downloading is { } d ? $"Downloading SCSKiller {d}…"
-        : Updater.Checking ? "Checking for updates…"
+    public string UpdateNote => Updater.Downloading is { } d ? $"正在下载 SCSKiller {d}…"
+        : Updater.Checking ? "正在检查更新…"
         : Wired && Updater.Ready is { } v ? AutoInstall.ReadyNote(v, Updater.InstallsAutomatically)
         : Updater.UpToDateOn is { } c ? UpdateChannels.UpToDate(c, Host.Core.Settings.UpdateChannel, AppVersion.Current.Channel) : "";
     public string? UpdateProblem => Updater.Problem;

@@ -9,7 +9,7 @@ public static class Fmt
 {
     public static string RecorderDll(GameState s) => s.AgsHost ? ScsKiller.AgsName : s.Records11 ? ScsKiller.Dll11 : ScsKiller.Records9(s.Engine) ? ScsKiller.Dll9 : ScsKiller.Dll12;
     /// <summary>What the recorder adds next to the game: its dll, and the preloader that loads it before DLSS.</summary>
-    public static string RecorderFiles(GameState s) => ScsKiller.RecorderFile(s, RecorderDll(s)) is var dll && s.Preload is { } p ? $"{dll} and {p}" : dll;
+    public static string RecorderFiles(GameState s) => ScsKiller.RecorderFile(s, RecorderDll(s)) is var dll && s.Preload is { } p ? $"{dll} 和 {p}" : dll;
     /// <summary>The file's name in a Windows or a Linux path: the design data's paths are Windows ones everywhere.</summary>
     public static string FileName(string path) => path[(path.LastIndexOfAny(['\\', '/']) + 1)..];
     public static string N(long? n) => n?.ToString("N0") ?? Format.Dash;
@@ -17,20 +17,20 @@ public static class Fmt
     public static string When(DateTimeOffset at)
     {
         var t = at.LocalDateTime;
-        return t.Date == DateTime.Today ? $"today at {Time(t, "t")}" : t.Date == DateTime.Today.AddDays(-1) ? $"yesterday at {Time(t, "t")}" : $"on {t:d}";
+        return t.Date == DateTime.Today ? $"今天 {Time(t, "t")}" : t.Date == DateTime.Today.AddDays(-1) ? $"昨天 {Time(t, "t")}" : $"{t:d}";
     }
     /// <summary>A time in the culture's pattern; ICU's narrow no-break space before AM or PM, which Selawik lacks, as a space.</summary>
     public static string Time(DateTime t, string format) => t.ToString(format).Replace('\u202F', ' ');
-    public static string KeptSize(KeptCache k) => $"{Format.Bytes(k.Bytes)} · " + (k.Frees > 0 ? $"frees {Format.Bytes(k.Frees)}" : "takes no extra space");
+    public static string KeptSize(KeptCache k) => $"{Format.Bytes(k.Bytes)} · " + (k.Frees > 0 ? $"可释放 {Format.Bytes(k.Frees)}" : "不占额外空间");
     public static string Vendor(GpuVendor v) => v switch
     {
         GpuVendor.Nvidia => "NVIDIA", GpuVendor.Amd => "AMD", GpuVendor.Intel => "Intel", _ => "GPU",
     };
-    public static string Engine(EngineInfo? e) => e is null ? "Unknown engine" : Format.Engine(e, e.Family == "Unreal" ? "UE" : null) + Guessed(e);
-    public static string Guessed(EngineInfo e) => e.VersionGuessed ? " (guessed)" : "";
+    public static string Engine(EngineInfo? e) => e is null ? "未知引擎" : Format.Engine(e, e.Family == "Unreal" ? "UE" : null) + Guessed(e);
+    public static string Guessed(EngineInfo e) => e.VersionGuessed ? "（推测）" : "";
     /// <summary>"Severe shader-compilation stutter: reason", then the source and when it was checked; null when not listed.</summary>
     public static string? StutterTip(GameState s) => s.KnownStutter is { } k
-        ? $"{(k.Severity == StutterSeverity.Severe ? "Severe" : "Moderate")} shader-compilation stutter: {k.Reason}.\nSource: {k.Source} (checked {k.Date})" : null;
+        ? $"{(k.Severity == StutterSeverity.Severe ? "严重" : "中等")}着色器编译卡顿：{k.Reason}。\n来源：{k.Source}（检查于 {k.Date}）" : null;
     /// <summary>Library sections, in list order (<see cref="StoreNames.Sections"/>).</summary>
     public static readonly string[] Stores = StoreNames.Sections;
     public const string AddedByYou = StoreNames.AddedByYou, SteamShortcut = StoreNames.SteamShortcut;
@@ -41,22 +41,22 @@ public static class Fmt
     {
         var found = storeNames.Select(n => n == SteamShortcut ? "Steam" : n).ToHashSet();
         var stores = Stores.Where(n => n != AddedByYou && found.Contains(n)).ToList();
-        return stores.Count > 2 ? $"{stores.Count} stores" : string.Join(" and ", stores);
+        return stores.Count > 2 ? $"{stores.Count} 个平台" : string.Join("、", stores);
     }
     /// <summary>Measured driver cache when known, else the estimate.</summary>
     public static string Cache(GameState s) => s.DiskBytes is { } c ? Format.Bytes(c) : s.EstimatedCacheBytes is { } b ? "≈ " + Format.Bytes(b) : Format.Dash;
     /// <summary>The last compile's measured time, else the estimate: the estimate's rate is measured on a cold cache only.</summary>
     public static TimeSpan? CompileTime(GameState s) => s.LastWarmTime ?? s.EstimatedWarmTime;
     /// <summary>Tooltip for an estimated (not measured) cache value; null when measured.</summary>
-    public static string? CacheTip(GameState s) => s.DiskBytes == null && s.EstimatedCacheBytes != null ? "Estimated driver cache if compiled" : null;
+    public static string? CacheTip(GameState s) => s.DiskBytes == null && s.EstimatedCacheBytes != null ? "预估的编译后驱动缓存" : null;
     /// <summary>One middleware tag: what it compiles and its DLLs.</summary>
-    public static string TagTip(MiddlewareTag t) => Format.Middleware(t, GpuBackends.OwnDriver(Host.Core.Vendor) == GpuVendor.Nvidia) + "\n    " + string.Join(", ", t.Dlls);
+    public static string TagTip(MiddlewareTag t) => Format.Middleware(t, GpuBackends.OwnDriver(Host.Core.Vendor) == GpuVendor.Nvidia) + "\n    " + string.Join("、", t.Dlls);
     /// <summary>The title bar's button while a downloaded update is ready (<paramref name="ready"/>), and while the restart
     /// waits for the compile (<paramref name="restarting"/>): then off, so a second click can't start another restart.</summary>
     public static (bool Visible, bool Enabled, string Label, string Tip) RestartToUpdate(string? ready, string? problem, bool installsAutomatically, bool restarting) =>
-        (ready != null || restarting, !restarting, restarting ? "Finishing the compile…" : "Restart to update",
-            problem ?? $"SCSKiller {ready} is ready. Restarting stops a running compile safely (the driver saves its cache first) and continues it afterwards." +
-            (installsAutomatically ? " Otherwise it installs the next time SCSKiller starts or quits." : ""));
+        (ready != null || restarting, !restarting, restarting ? "正在完成编译…" : "重启更新",
+            problem ?? $"SCSKiller {ready} 已就绪。重启会安全地暂停正在进行的编译（驱动会先保存缓存），之后继续。" +
+            (installsAutomatically ? "否则将在 SCSKiller 下次启动或退出时安装。" : ""));
     public static bool Active(QueueItem q) => q.Stage is not (QueueStage.Done or QueueStage.Failed or QueueStage.Stopped);
     public static void PauseOrResume(QueueItem? running)
     {
@@ -71,28 +71,28 @@ public static class Fmt
     }
     public static string Stage(QueueItem q) => q.Stage switch
     {
-        QueueStage.Indexing => "Reading shaders", QueueStage.Planning => "Building plan", QueueStage.Materializing => "Preparing files",
-        QueueStage.Paused => q.Note is { } n ? n.StartsWith("paused ", StringComparison.Ordinal) ? "P" + n[1..] : "Paused: " + n : "Paused",   // "paused until the PC is idle" reads alone in the queue row
+        QueueStage.Indexing => "正在读取着色器", QueueStage.Planning => "正在构建方案", QueueStage.Materializing => "正在准备文件",
+        QueueStage.Paused => q.Note is { } n ? n.StartsWith("paused ", StringComparison.Ordinal) ? "P" + n[1..] : "已暂停：" + n : "已暂停",   // "paused until the PC is idle" reads alone in the queue row
         QueueStage.Merging => q.Note ?? Format.MergingStage,
         QueueStage.Saving => Format.SavingStage,
         QueueStage.Finishing => Format.FinishingStage,
-        QueueStage.Warming when q.Note is { } n => "Compiling: " + n,   // stalled (ScsKiller.StalledNote)
-        QueueStage.Warming when Tail(q) => "Compiling the last pipelines",
-        _ => "Compiling",
+        QueueStage.Warming when q.Note is { } n => "编译中：" + n,   // stalled (ScsKiller.StalledNote)
+        QueueStage.Warming when Tail(q) => "正在编译最后一批管线",
+        _ => "编译中",
     };
     /// <summary>"54.8% · 1,234 of 5,000 pipelines · 480/s" (reading shaders: packages, a plan or file preparation step: its own count,
     /// "12,340 recording entries read" while its total is unknown); null before the warm knows its total.</summary>
     public static string? ProgressText(QueueItem q) => q.Stage is QueueStage.Saving or QueueStage.Finishing ? q.Note   // elapsed time, no share
-        : q is { Stage: QueueStage.Planning or QueueStage.Materializing, Progress: { Note: { } step } s } ? s.Total > 0 ? $"{Percent(q):0.0}% · {s.Done:N0} of {s.Total:N0} {step}" : $"{s.Done:N0} {step}"
+        : q is { Stage: QueueStage.Planning or QueueStage.Materializing, Progress: { Note: { } step } s } ? s.Total > 0 ? $"{Percent(q):0.0}% · {s.Done:N0}/{s.Total:N0} {step}" : $"{s.Done:N0} {step}"
         : q.Progress is { Total: > 0 } p
-        ? q.Stage == QueueStage.Merging ? $"{Percent(q):0.0}% · {Format.Bytes(p.Done)} of {Format.Bytes(p.Total)}"
-        : $"{Percent(q):0.0}% · {p.Done:N0} of {p.Total:N0} {(q.Stage == QueueStage.Indexing ? "packages" : "pipelines")}" + (p.PerSecond > 0 && !ScsKiller.Stalled(q) ? $" · {p.PerSecond:N0}/s" : "") + (p.Failed > 0 ? $" · {p.Failed:N0} failed" : "") + (p.Skipped > 0 ? $" · {p.Skipped:N0} skipped" : "")   // short (the Done note explains them); a count wraps whole
+        ? q.Stage == QueueStage.Merging ? $"{Percent(q):0.0}% · {Format.Bytes(p.Done)}/{Format.Bytes(p.Total)}"
+        : $"{Percent(q):0.0}% · {p.Done:N0}/{p.Total:N0} {(q.Stage == QueueStage.Indexing ? "文件包" : "条管线")}" + (p.PerSecond > 0 && !ScsKiller.Stalled(q) ? $" · {p.PerSecond:N0}/s" : "") + (p.Failed > 0 ? $" · {p.Failed:N0} 失败" : "") + (p.Skipped > 0 ? $" · {p.Skipped:N0} 跳过" : "")   // short (the Done note explains them); a count wraps whole
             + (ScsKiller.MemoryLimitNote(p) is { } m ? " · " + m : "")
         : null;
     /// <summary>The warm's last pipelines in flight: the rate says under 2 s, but the slowest ones are still compiling.</summary>
     static bool Tail(QueueItem q) => q is { Stage: QueueStage.Warming, Progress: { Total: > 0, PerSecond: > 0 } p } && (p.Total - p.Done) / p.PerSecond < 2;
     /// <summary>"started 21:14" (local time); null before the compile's first stage.</summary>
-    public static string? Started(QueueItem q) => q.StartedAt is { } t ? $"started {t.LocalDateTime:t}" : null;
+    public static string? Started(QueueItem q) => q.StartedAt is { } t ? $"{t.LocalDateTime:t} 开始" : null;
     public static double Percent(QueueItem? q) => q?.Progress is { Total: > 0 } p ? 100.0 * p.Done / p.Total : 0;
     public static bool Indeterminate(QueueItem? q) => q != null && q.Progress is not { Total: > 0 };
     public static TimeSpan? Left(QueueItem q, GameState? g) => ScsKiller.Stalled(q) || Tail(q) || q.Stage is not (QueueStage.Planning or QueueStage.Materializing) && q.Progress is { Total: > 0 } d && d.Done >= d.Total ? null   // no estimate for a warm that stopped moving, nor once it's through
@@ -109,7 +109,7 @@ public static class Fmt
             || Host.Core.QueueRunning && compiles.FirstOrDefault(q => q.Stage == QueueStage.Waiting && !ScsKiller.WaitsOnItsOwn(q))?.GameId == gameId;
     }
 
-    public const string CompilingTip = "Compiling: play when it finishes";
+    public const string CompilingTip = "编译中：完成后即可游玩";
 
     /// <summary>What IScsKiller doesn't carry, from the real core or the design data.</summary>
     public static ManualSource? Added => Host.Core is ScsKiller k ? k.Manual : Host.Design?.Manual;
@@ -128,23 +128,23 @@ public static class Fmt
     public static string? Play(GameState s)
     {
         var g = s.Game;
-        if (StoreLaunch.OwnLauncherOnly(s)) return $"Start {g.Name} from its own launcher";
+        if (StoreLaunch.OwnLauncherOnly(s)) return $"请从 {g.Name} 自己的启动器启动";
         if (Host.Design != null) return null;
         try
         {
-            if (StoreLaunch.Command(g) is not { } command) return $"Couldn't find how {StoreName(g)} starts {g.Name}: refresh the library.";
+            if (StoreLaunch.Command(g) is not { } command) return $"找不到 {StoreName(g)} 启动 {g.Name} 的方式：请刷新游戏库。";
             System.Diagnostics.Process.Start(command)?.Dispose();
             return null;
         }
         catch (Exception e) when (e is System.ComponentModel.Win32Exception or InvalidOperationException)
         {
-            return $"Couldn't start {g.Name}{(g.Store == Store.Manual ? "" : " through " + StoreName(g))}: {e.Message}";
+            return $"无法启动 {g.Name}{(g.Store == Store.Manual ? "" : "（通过 " + StoreName(g) + "）")}：{e.Message}";
         }
     }
 
     /// <summary>The Play button's tooltip when it can start the game.</summary>
-    public static string PlayVia(Game g) => g.Store == Store.Manual ? $"Start {FileName(g.ExePath)}"
+    public static string PlayVia(Game g) => g.Store == Store.Manual ? $"启动 {FileName(g.ExePath)}"
         // the store starts the collection, which opens the game played last
-        : Collections.Member(g.Id) != null ? $"Play through {StoreName(g)}, then pick {g.Name} in the game's menu if another game opens"
-        : $"Play through {StoreName(g)}";
+        : Collections.Member(g.Id) != null ? $"通过 {StoreName(g)} 启动；若打开的是其他游戏，请在游戏菜单中选择 {g.Name}"
+        : $"通过 {StoreName(g)} 启动";
 }

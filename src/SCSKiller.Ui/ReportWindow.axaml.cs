@@ -30,7 +30,7 @@ public sealed partial class ReportWindow : Window
     ReportWindow(string id, string game, BeforeAfterResult r) : this()
     {
         (this.id, this.game, this.r) = (id, game, r);
-        Title = $"Before and after · {game}";
+        Title = $"之前/之后 · {game}";
         RequestedThemeVariant = App.Main.RequestedThemeVariant;
         App.Main.PropertyChanged += FollowTheme;
         Host.Icons.Changed += ShowIcon;
@@ -100,7 +100,7 @@ public sealed partial class ReportWindow : Window
 
     void Fill()
     {
-        Heading.Text = $"Before and after · {game}";
+        Heading.Text = $"之前/之后 · {game}";
         CardGame.Text = game.ToUpperInvariant();
         ShowIcon();
         var text = BeforeAfter.Report(game, r, Host.Core.Vendor.Vendor);
@@ -110,7 +110,7 @@ public sealed partial class ReportWindow : Window
         (LabelWorst.Text, TileWorst.Text) = text.Tiles[2];
 
         var (before, after) = (FrameData.Of(r.Before) with { Neutral = C.Dx11 }, FrameData.Of(r.After) with { Neutral = C.Dx11 });
-        if (C.Dx11) (LegendShader.IsVisible, LegendOther.Text) = (false, "stutter");
+        if (C.Dx11) (LegendShader.IsVisible, LegendOther.Text) = (false, "卡顿");
         double top = FrameGraph.TopFor(r.Before.Hitches.Concat(r.After.Hitches));
         double spp = Math.Max(Span(before), Span(after)) / 1000 / GraphWidth;
         Graph(BeforeGraph, BeforeAxis, BeforeEnd, before, C.Before);
@@ -119,7 +119,7 @@ public sealed partial class ReportWindow : Window
         {
             graph.Show(d, d.Play.From, d.Play.To, top, spp);
             axis.Width = graph.Width;
-            end.Text = BeforeAfter.Clock(run.PlaySeconds) + " of play";
+            end.Text = "游戏时长 " + BeforeAfter.Clock(run.PlaySeconds);
         }
 
         ShowGpu.IsChecked = Host.Core.Settings.BeforeAfterShowGpu;
@@ -128,7 +128,7 @@ public sealed partial class ReportWindow : Window
 
         Details.Children.Clear();
         Details.RowDefinitions.Clear();
-        Row(new("Details", "Before", "After"), header: true);
+        Row(new("详细信息", "之前", "之后"), header: true);
         foreach (var row in text.Rows) Row(row);
 
         Notes.Children.Clear();
@@ -207,7 +207,7 @@ public sealed partial class ReportWindow : Window
             {
                 SuggestedFileName = BeforeAfter.ImageName(game), DefaultExtension = "png",
                 SuggestedStartLocation = await StorageProvider.TryGetWellKnownFolderAsync(WellKnownFolder.Pictures),
-                FileTypeChoices = [new("PNG image") { Patterns = ["*.png"] }],
+                FileTypeChoices = [new("PNG 图片") { Patterns = ["*.png"] }],
             });
             if (file == null) return;
             using (var image = CardImage())
@@ -216,16 +216,16 @@ public sealed partial class ReportWindow : Window
                 target.SetLength(0);
                 image.Save(target, PngBitmapEncoderOptions.Default);
             }
-            Tell($"Saved {file.Name}");
+            Tell($"已保存 {file.Name}");
         }
-        catch (Exception e) { Tell("Couldn't save the image: " + BeforeAfterUi.Describe(e), InfoBarSeverity.Error); }
+        catch (Exception e) { Tell("无法保存图片：" + BeforeAfterUi.Describe(e), InfoBarSeverity.Error); }
     }
 
     /// <summary>Text from Core (BeforeAfter.ShareText); null with the error shown.</summary>
     string? Text()
     {
         try { return BeforeAfter.ShareText(game, C); }
-        catch (Exception e) { Tell("Couldn't make the share text: " + BeforeAfterUi.Describe(e), InfoBarSeverity.Error); return null; }
+        catch (Exception e) { Tell("无法生成分享文本：" + BeforeAfterUi.Describe(e), InfoBarSeverity.Error); return null; }
     }
 
     /// <summary>Kept on the clipboard after the app quits (on Windows: X11 drops it unless a clipboard manager takes it).</summary>
@@ -247,7 +247,7 @@ public sealed partial class ReportWindow : Window
                 return true;
             }
             // Avalonia's clipboard reads the bitmap when an app pastes: it stays undisposed
-            var clipboard = Clipboard ?? throw new InvalidOperationException("No clipboard");
+            var clipboard = Clipboard ?? throw new InvalidOperationException("没有剪贴板");
             var item = new DataTransferItem();
             if (bitmap != null) item.SetBitmap(bitmap);
             if (text != null) item.Set(DataFormat.Text, text);
@@ -257,22 +257,22 @@ public sealed partial class ReportWindow : Window
             await clipboard.FlushAsync();
             return true;
         }
-        catch (Exception e) { Tell("Couldn't copy: " + BeforeAfterUi.Describe(e), InfoBarSeverity.Error); return false; }
+        catch (Exception e) { Tell("无法复制：" + BeforeAfterUi.Describe(e), InfoBarSeverity.Error); return false; }
     }
 
     async void OnCopy(object? _, RoutedEventArgs __)
     {
-        if (await CopyAsync(image: true, Text())) Tell("Image copied");
+        if (await CopyAsync(image: true, Text())) Tell("图片已复制");
     }
 
     async void OnDiscord(object? _, RoutedEventArgs __)
     {
-        if (await CopyAsync(image: true, Text())) Tell("Image and text copied: paste them in Discord");
+        if (await CopyAsync(image: true, Text())) Tell("图片和文本已复制：粘贴到 Discord 即可");
     }
 
     async void OnCopyText(object? _, RoutedEventArgs __)
     {
-        if (Text() is { } text && await CopyAsync(image: false, text)) Tell("Text copied");
+        if (Text() is { } text && await CopyAsync(image: false, text)) Tell("文本已复制");
     }
 
     // neither composer takes an image from a link: it goes to the clipboard, and a toast over the browser says to paste it
@@ -284,11 +284,11 @@ public sealed partial class ReportWindow : Window
         if (Text() is not { } text || !await CopyAsync(image: true, null)) return;
         try
         {
-            if (!await Launcher.LaunchUriAsync(new Uri(url(text)))) throw new InvalidOperationException("No browser");
+            if (!await Launcher.LaunchUriAsync(new Uri(url(text)))) throw new InvalidOperationException("没有浏览器");
         }
-        catch (Exception e) { Tell("Couldn't open the browser: " + BeforeAfterUi.Describe(e), InfoBarSeverity.Error); return; }
-        Tell("Paste (Ctrl+V) to add the image", InfoBarSeverity.Informational);
-        App.Hint?.Invoke("The image is copied", "Press Ctrl+V in the post to add it.");
+        catch (Exception e) { Tell("无法打开浏览器：" + BeforeAfterUi.Describe(e), InfoBarSeverity.Error); return; }
+        Tell("粘贴（Ctrl+V）以添加图片", InfoBarSeverity.Informational);
+        App.Hint?.Invoke("图片已复制", "在发帖处按 Ctrl+V 即可添加。");
     }
 
     async void OnRecordAgain(object? _, RoutedEventArgs __)

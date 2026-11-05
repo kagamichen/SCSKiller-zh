@@ -28,7 +28,7 @@ public sealed record AppPlatform
     /// <summary>The driver-update setting's sign-in and idle check, which notifies or compiles (ScheduledTask).</summary>
     public bool DriverUpdateModes { get; init; }
     /// <summary>The Library's line for the "When idle" rebuild after a driver update.</summary>
-    public string IdleRebuildNote { get; init; } = "Rebuilds on its own while you're away from the PC";
+    public string IdleRebuildNote { get; init; } = "在你离开电脑时自动重新编译";
     /// <summary>NVIDIA App's Automatic Shader Compilation, a setting of the Windows driver.</summary>
     public bool AutoShaderCompilation { get; init; }
     /// <summary>The OS's own shader cache of each game (Windows' D3DSCache), which clearing a game's caches deletes too.</summary>
@@ -40,12 +40,12 @@ public sealed record AppPlatform
     /// <summary>The game page's line on the cache SCSKiller puts in Steam's own folder (IScsKiller.SteamCacheNote).</summary>
     public bool SteamCacheNote { get; init; }
     /// <summary>The Cache page's line under where the driver keeps its cache.</summary>
-    public string CacheFolderNote { get; init; } = "Games read their cache from here, and new caches are written here. The driver has no setting to move it.";
+    public string CacheFolderNote { get; init; } = "游戏从此处读取缓存，新缓存也写入此处。驱动没有更改此位置的设置。";
 
     public static readonly AppPlatform Windows = new()
     {
         Name = "Windows", Stores = ["Steam", "Epic", "Xbox", "EA", "GOG", "Ubisoft Connect", "Battle.net", "PURPLE", "HoYoPlay", "GRYPHLINK", "WeGame", "Gaijin", "Riot Client"],
-        UpdatingStores = "Steam or the Xbox app", SystemTheme = "Use Windows setting", Runtime = "Windows",
+        UpdatingStores = "Steam 或 Xbox 应用", SystemTheme = "使用 Windows 设置", Runtime = "Windows",
         AddGames = true, GameFolders = true, StartAtSignIn = true, Tray = true, DriverUpdateModes = true, AutoShaderCompilation = true, SystemShaderCache = true,
         RecordAntiCheatGames = true,
     };
@@ -54,20 +54,20 @@ public sealed record AppPlatform
     public static AppPlatform Linux(Func<bool> steam) => new()
     {
         // the flags left off are features Linux doesn't have yet, each turned on once it does
-        Name = "Linux", Stores = ["Steam", "Heroic", "Lutris", "Faugus"], UpdatingStores = "Steam", SystemTheme = "Use system setting", Runtime = "Proton", Tray = true, StartAtSignIn = true, DriverUpdateModes = true,
-        NoGamesNote = () => steam() ? "SCSKiller lists the Windows games you installed with Steam, Heroic, Lutris or Faugus, and the ones you added to Steam with Proton."
-            : "SCSKiller lists the Windows games of Steam, Heroic, Lutris and Faugus.",
+        Name = "Linux", Stores = ["Steam", "Heroic", "Lutris", "Faugus"], UpdatingStores = "Steam", SystemTheme = "使用系统设置", Runtime = "Proton", Tray = true, StartAtSignIn = true, DriverUpdateModes = true,
+        NoGamesNote = () => steam() ? "SCSKiller 会列出你通过 Steam、Heroic、Lutris 或 Faugus 安装的 Windows 游戏，以及你通过 Proton 添加到 Steam 的游戏。"
+            : "SCSKiller 会列出 Steam、Heroic、Lutris 和 Faugus 的 Windows 游戏。",
         // no input idle time: the background compile starts at once and pauses only for a game
-        IdleRebuildNote = "Rebuilds in the background and pauses while a game runs",
+        IdleRebuildNote = "在后台重新编译，游戏运行时暂停",
         SteamCacheNote = true, RecordAntiCheatGames = true, AddGames = true,
-        CacheFolderNote = "Games read their cache from here, and new caches are written here. Steam picks this folder for its games, the driver's default folder holds the rest.",
-        AddGamesNote = "The game's exe needs to be inside its Wine prefix.",
+        CacheFolderNote = "游戏从此处读取缓存，新缓存也写入此处。Steam 为其游戏选择此文件夹，其余游戏使用驱动的默认文件夹。",
+        AddGamesNote = "游戏的 exe 需要位于其 Wine prefix 内。",
     };
 
     /// <summary>The UI on the Linux build's core, with no game scan, compile, recorder or Vulkan layer yet.</summary>
     public static readonly AppPlatform MacOS = new()
     {
-        Name = "macOS", Stores = ["Steam"], UpdatingStores = "Steam", SystemTheme = "Use system setting", Runtime = "the game's runtime",
-        NoGamesNote = () => "Finding and compiling games isn't available on macOS yet.",
+        Name = "macOS", Stores = ["Steam"], UpdatingStores = "Steam", SystemTheme = "使用系统设置", Runtime = "游戏自带的运行时",
+        NoGamesNote = () => "在 macOS 上尚不支持查找和编译游戏。",
     };
 }

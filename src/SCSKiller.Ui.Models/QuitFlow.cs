@@ -12,7 +12,7 @@ public sealed class QuitFlow
     TaskCompletionSource? now;   // set while the quit waits for the compile
 
     public bool Quitting { get; private set; }
-    public string Label => now != null ? "Quit now (loses unsaved cache)" : "Quit";
+    public string Label => now != null ? "立即退出（丢失未保存的缓存）" : "退出";
 
     /// <summary>False: a quit already runs, and one waiting for the compile stops waiting.</summary>
     public bool Begin()

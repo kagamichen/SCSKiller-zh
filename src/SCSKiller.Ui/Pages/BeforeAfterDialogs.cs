@@ -29,30 +29,30 @@ static class BeforeAfterDialogs
         static TextBlock Line(string text) => new() { Text = text, TextWrapping = TextWrapping.Wrap };
         var (step1, step3) = (Line(""), Line(""));
         void Steps() => (step1.Text, step3.Text) = (
-            $"1. SCSKiller deletes this game's shader caches ({(Host.Platform.SystemShaderCache ? "the driver's, Windows' and" : "the driver's and")} the game's own) and starts the game. Load a save you can load again and play. The {minutes} minutes count from the game's first frame, loading and pauses included.",
-            $"3. Load the same save and play the same {minutes} minutes.");
+            $"1. SCSKiller 会删除该游戏的着色器缓存（{(Host.Platform.SystemShaderCache ? "驱动、Windows 和" : "驱动和")}游戏自己的）并启动游戏。读取一个之后还能再次读取的存档并游玩。{minutes} 分钟从游戏的第一帧开始计算，包括加载和暂停。",
+            $"3. 读取同一个存档，再游玩同样的 {minutes} 分钟。");
         Steps();
         var steps = new StackPanel
         {
             Spacing = 8, IsVisible = full,
-            Children = { step1, Line("2. Close the game. SCSKiller deletes the caches again and compiles the game's shaders."), step3,
-                Line("4. You get a before and after report you can save and share.") },
+            Children = { step1, Line("2. 关闭游戏。SCSKiller 会再次删除这些缓存并编译该游戏的着色器。"), step3,
+                Line("4. 你会得到一份可以保存和分享的前后对比报告。") },
         };
-        var how = new HyperlinkButton { Content = "How it works", Padding = new(0), IsVisible = !full };
+        var how = new HyperlinkButton { Content = "工作原理", Padding = new(0), IsVisible = !full };
         how.Click += (_, _) => (steps.IsVisible, how.IsVisible) = (true, false);
 
         var group = $"play-time-{Guid.NewGuid():N}";
-        var (five, ten) = (new RadioButton { Content = "5 minutes", GroupName = group, IsChecked = true }, new RadioButton { Content = "10 minutes", GroupName = group });
+        var (five, ten) = (new RadioButton { Content = "5 分钟", GroupName = group, IsChecked = true }, new RadioButton { Content = "10 分钟", GroupName = group });
         ten.IsCheckedChanged += (_, _) => { minutes = ten.IsChecked == true ? 10 : 5; Steps(); };
         var time = new StackPanel
         {
             Spacing = 8,
-            Children = { new TextBlock { Text = "Play time" }, new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { five, ten } } },
+            Children = { new TextBlock { Text = "游玩时长" }, new StackPanel { Orientation = Orientation.Horizontal, Spacing = 8, Children = { five, ten } } },
         };
-        var sound = new CheckBox { Content = "Play a sound when the time is up", IsChecked = s.BeforeAfterSound };
-        var overlay = new CheckBox { Content = "Show the countdown in the game", IsChecked = s.BeforeAfterOverlay };
-        ToolTip.SetTip(overlay, "A small panel at the top right of the game: the time left, your frame times and, on DirectX 12 and Vulkan, each shader compilation stutter. SCSKiller counts down here either way. It isn't shown with FSR or XeSS frame generation on.");
-        var maxRun = new CheckBox { Content = "Max compile for the after run", IsChecked = s.BeforeAfterMax, IsVisible = max };
+        var sound = new CheckBox { Content = "时间到时播放提示音", IsChecked = s.BeforeAfterSound };
+        var overlay = new CheckBox { Content = "在游戏中显示倒计时", IsChecked = s.BeforeAfterOverlay };
+        ToolTip.SetTip(overlay, "游戏右上角的一个小面板：剩余时间、你的帧时间，以及在 DirectX 12 和 Vulkan 上的每次着色器编译卡顿。无论是否显示，SCSKiller 都会在此倒计时。开启 FSR 或 XeSS 帧生成时不显示。");
+        var maxRun = new CheckBox { Content = "为第二次运行进行极限编译", IsChecked = s.BeforeAfterMax, IsVisible = max };
         ToolTip.SetTip(maxRun, DetailVm.MaxCompileWhy);
         var checks = new StackPanel { VerticalAlignment = VerticalAlignment.Bottom, Children = { sound, overlay, maxRun } };
         var choices = new Grid { ColumnSpacing = 24, ColumnDefinitions = new("*,Auto"), Children = { time, checks }, IsVisible = mode != Intro.HowItWorks };
@@ -61,7 +61,7 @@ static class BeforeAfterDialogs
         static TextBlock Bullet(string text, bool shown = true) => new() { Text = "• " + text, TextWrapping = TextWrapping.Wrap, Classes = { "Secondary" }, IsVisible = shown };
         var dialog = new ContentDialog
         {
-            Title = mode == Intro.StartOver ? $"Start over with {game}?" : "Before and after recording",
+            Title = mode == Intro.StartOver ? $"重新开始“{game}”的录制？" : "“之前/之后”录制",
             Content = new StackPanel
             {
                 Spacing = 16, [!Layoutable.MaxWidthProperty] = new DynamicResourceExtension("TextFit.560"),
@@ -70,7 +70,7 @@ static class BeforeAfterDialogs
                     new InfoBar
                     {
                         IsClosable = false, Severity = InfoBarSeverity.Warning,
-                        Message = "This also deletes the game's own shader cache, which isn't backed up and can be 2 GB. The game rebuilds it, which can take minutes.",
+                        Message = "这还会删除游戏自带的着色器缓存（可能达 2 GB，没有备份）。游戏会自行重建，可能需要几分钟。",
                     },
                     steps, how, choices,
                     new StackPanel
@@ -78,16 +78,16 @@ static class BeforeAfterDialogs
                         Spacing = 6,
                         Children =
                         {
-                            Bullet("Don't change graphics settings between the two runs."),
-                            Bullet("Your current compile for this game is deleted, it's compiled again in step 2."),
-                            Bullet("A small d3d11.dll goes next to the game for this recording only, then it's removed.", frames11),
-                            Bullet("Frame times stay on this PC. With sharing on, the usual anonymous hashes are sent."),
+                            Bullet("两次运行之间不要更改画面设置。"),
+                            Bullet("该游戏当前的编译结果会被删除，第 2 步会重新编译。"),
+                            Bullet("录制期间会在游戏旁临时放置一个小的 d3d11.dll，结束后移除。", frames11),
+                            Bullet("帧时间仅保存在本机。若开启共享，只会照常发送匿名的哈希。"),
                         },
                     },
                 },
             },
-            CloseButtonText = mode == Intro.HowItWorks ? "Close" : "Cancel",
-            PrimaryButtonText = mode == Intro.HowItWorks ? "" : "Start the before run",
+            CloseButtonText = mode == Intro.HowItWorks ? "关闭" : "取消",
+            PrimaryButtonText = mode == Intro.HowItWorks ? "" : "开始“之前”一场",
             DefaultButton = mode == Intro.HowItWorks ? ContentDialogButton.Close : ContentDialogButton.Primary,
         };
         Showing = dialog;
@@ -113,9 +113,9 @@ static class BeforeAfterDialogs
     {
         var dialog = new ContentDialog
         {
-            Title = "Record the after run again?",
-            Content = "SCSKiller clears the caches and compiles again first, so the new run isn't helped by the last one. Then play the same save again.",
-            PrimaryButtonText = "Record again", CloseButtonText = "Cancel", DefaultButton = ContentDialogButton.Primary,
+            Title = "重新录制“之后”一场？",
+            Content = "SCSKiller 会先清除缓存并重新编译，避免上一场的结果影响新一场。然后请再次读取同一个存档游玩。",
+            PrimaryButtonText = "重新录制", CloseButtonText = "取消", DefaultButton = ContentDialogButton.Primary,
         };
         if (await App.ShowAsync(dialog, on) != ContentDialogResult.Primary) return null;
         return await BeforeAfterUi.RecordAfterAgainAsync(id);
@@ -126,9 +126,9 @@ static class BeforeAfterDialogs
     {
         var dialog = new ContentDialog
         {
-            Title = "Cancel the before and after recording?",
-            Content = "Its shader caches were cleared, so the game stutters until it's compiled again.",
-            PrimaryButtonText = "Compile now", SecondaryButtonText = "Don't compile", CloseButtonText = "Keep going", DefaultButton = ContentDialogButton.Primary,
+            Title = "取消“之前/之后”录制？",
+            Content = "其着色器缓存已被清除，在重新编译之前游戏会一直卡顿。",
+            PrimaryButtonText = "立即编译", SecondaryButtonText = "不编译", CloseButtonText = "继续录制", DefaultButton = ContentDialogButton.Primary,
         };
         var result = await App.ShowAsync(dialog);
         if (result is not (ContentDialogResult.Primary or ContentDialogResult.Secondary)) return null;
