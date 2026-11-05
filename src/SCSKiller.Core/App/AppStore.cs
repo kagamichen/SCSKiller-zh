@@ -373,7 +373,7 @@ public sealed class AppStore(string dataDir)
 
     internal static string? PortableRoot(string baseDir) => InstallRoots(baseDir).FirstOrDefault(d => File.Exists(Path.Combine(d, ".portable")));
 
-    public const string DevBuildRefusal = "This is a development build: set SCSKILLER_DATA_DIR to a test folder, or SCSKILLER_ALLOW_LIVE_DATA=1 to use your real data.";
+    public const string DevBuildRefusal = "这是开发版构建：请将 SCSKILLER_DATA_DIR 指向测试文件夹，或设置 SCSKILLER_ALLOW_LIVE_DATA=1 以使用真实数据。";
 
     /// <summary>True for a build that would open the real %LOCALAPPDATA%\SCSKiller without being a Velopack install or portable
     /// package (a repo build, raw publish output). Windows only: the other platforms package without Update.exe.</summary>

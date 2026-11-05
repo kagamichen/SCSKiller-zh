@@ -174,11 +174,18 @@ foreach ($rc in "SCSKiller.runtimeconfig.json", "cli\scskiller.runtimeconfig.jso
 }
 
 # 6. zip (with the SCSKiller\ folder at its root)
+# zh fork: a dev build without Update.exe refuses %LOCALAPPDATA% data (AppStore.RefusesLiveData). A .portable
+# marker beside SCSKiller\ turns the output into a portable build whose data\ sits next to it, away from any
+# installed SCSKiller - both for running dist\ directly and inside the zip (extract, and data\ lands beside it).
+New-Item -ItemType File -Force (Join-Path $dist ".portable") | Out-Null
 if (-not $NoZip) {
     $zip = Join-Path $dist "SCSKiller.zip"
     if (Test-Path $zip) { Remove-Item $zip }
     Add-Type -AssemblyName System.IO.Compression.FileSystem
     [IO.Compression.ZipFile]::CreateFromDirectory($out, $zip, [IO.Compression.CompressionLevel]::Optimal, $true)
+    $archive = [IO.Compression.ZipFile]::Open($zip, [IO.Compression.ZipArchiveMode]::Update)
+    $archive.CreateEntry(".portable") | Out-Null
+    $archive.Dispose()
 }
 $msg = "dist\SCSKiller: {0:N0} MB" -f ((Get-ChildItem $out -Recurse -File | Measure-Object Length -Sum).Sum / 1MB)
 if (-not $NoZip) { $msg += ", dist\SCSKiller.zip: {0:N0} MB" -f ((Get-Item $zip).Length / 1MB) }
