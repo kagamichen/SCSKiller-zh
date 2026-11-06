@@ -360,7 +360,7 @@ public sealed class AppStore(string dataDir)
     public const string MovedRefusal = "Not available while the data folder is moved.";
 
     static readonly Lazy<string> _defaultDir = new(() =>
-        Resolve(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SCSKiller"), PortableRoot(AppContext.BaseDirectory), out _onOldFolder));
+        Resolve(Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "SCSKiller-zh"), PortableRoot(AppContext.BaseDirectory), out _onOldFolder));   // zh fork: its own data folder, beside an installed English SCSKiller
 
     static IDisposable? _onOldFolder;   // held for the process's life (Resolve)
 

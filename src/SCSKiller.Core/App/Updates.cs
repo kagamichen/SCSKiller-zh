@@ -303,15 +303,15 @@ public static class AutoInstall
         && (AppVersion.Parse(staged.Version) is { } v && v.CompareTo(current) > 0 || backToStable && staged.Channel == UpdateChannels.Stable);
 
     public static string ReadyNote(string version, bool auto) => auto
-        ? $"SCSKiller {version} is ready: it installs the next time SCSKiller starts or quits, or use Restart to update at the top."
-        : $"SCSKiller {version} is ready: use Restart to update at the top.";
+        ? $"SCSKiller {version} 已就绪：将在下次启动或退出时安装，也可点击顶部的“重启更新”。"
+        : $"SCSKiller {version} 已就绪：点击顶部的“重启更新”安装。";
 }
 
 /// <summary>Where updates and their source come from. <see cref="GhRepo"/> is compiled in: renaming the public repo
 /// strands every installed build's stable updates.</summary>
 public static class UpdateFeeds
 {
-    public const string GhRepo = "BlueHeisenberg/SCSKiller";
+    public const string GhRepo = "kagamichen/SCSKiller-zh";   // zh fork: its own releases, so an update never swaps the app back to the English upstream
     public static readonly Uri Packages = new("https://dl.scskiller.io/");   // alpha/beta/internal packages: VPS route only
     /// <summary>The app's background check; the Library's refresh and About's "Check for updates" check in between.</summary>
     public static readonly TimeSpan CheckEvery = TimeSpan.FromHours(1);
